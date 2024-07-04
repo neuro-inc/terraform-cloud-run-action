@@ -9,8 +9,8 @@ jobs:
   release:
     steps:
     # ...
-    - name: Checkout commit
-      uses: neuro-inc/upload-image-action@v21.9.3
+    - name: Deploy
+      uses: neuro-inc/terraform-cloud-run-action@v24.7.0
       with:
         token: ${{ secrets.TF_API_TOKEN }}
         workspace: control-plane-dev
