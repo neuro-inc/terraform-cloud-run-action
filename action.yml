@@ -1,0 +1,64 @@
+name: Trigger Terraform Cloud run.
+description: 'Upload Docker image as an artifact'
+inputs:
+  token:
+    description: Terraform Cloud API token, <secrets.TF_API_TOKEN>
+    required: true
+  organization:
+    description: Name of the Terraform Cloud organization.
+    required: false
+    default: apolo-us
+  workspace:
+    description: Name of the Terraform Cloud workspace.
+    required: true
+  variables:
+    description: |
+      Terraform Cloud workspace variables. Variables must exist in Terraform Cloud. Multiple variables can
+      be passed, each on a separate line.
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Install python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Install requirements
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+    - name: Get workspace id
+      id: get_workspace_id
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        source venv/bin/activate
+        python main.py get-tf-workspace-id \
+          --tf-api-token ${{ inputs.token }} \
+          --tf-organization ${{ inputs.organization }} \
+          --tf-workspace ${{ inputs.workspace }}
+    - name: Update variables
+      shell: bash
+      if: ${{ inputs.variables != '' }}
+      run: |
+        cd ${{ github.action_path }}
+        source venv/bin/activate
+        python main.py update-tf-variables \
+          --tf-api-token ${{ inputs.token }} \
+          --tf-workspace-id ${{ steps.get_workspace_id.outputs.workspace_id }} \
+          - <<VARS
+        ${{ inputs.variables }}
+        VARS
+    - name: Trigger run
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        source venv/bin/activate
+        python main.py trigger-tf-run \
+          --tf-api-token ${{ inputs.token }} \
+          --tf-workspace-id ${{ steps.get_workspace_id.outputs.workspace_id }} \
+          --gh-repo-name ${{ github.event.repository.name }}
