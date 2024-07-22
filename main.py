@@ -54,6 +54,7 @@ def update_tf_variables(
     for line in tf_variables_file.readlines():
         if not line.strip():
             continue
+        line = line[:-1] # remove trailing \n
         key, _, value = line.partition("=")
         variable = variables_by_key.get(key)
         if variable is None:
