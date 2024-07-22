@@ -52,7 +52,7 @@ def update_tf_variables(
     variables_by_key = {v["attributes"]["key"]: v for v in response.json()["data"]}
 
     for line in tf_variables_file.readlines():
-        if not line:
+        if not line.strip():
             continue
         key, _, value = line.partition("=")
         variable = variables_by_key.get(key)
