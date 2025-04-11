@@ -17,6 +17,11 @@ inputs:
       be passed, each on a separate line.
     required: false
     default: ""
+  apply:
+    description: |
+      If 'true' create new run in Terraform Cloud.
+    required: false
+    default: 'true'
 runs:
   using: composite
   steps:
@@ -55,6 +60,7 @@ runs:
         VARS
     - name: Trigger run
       shell: bash
+      if: ${{ inputs.apply == 'true' }}
       run: |
         cd ${{ github.action_path }}
         source venv/bin/activate
